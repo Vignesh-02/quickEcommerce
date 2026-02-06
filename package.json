@@ -11,7 +11,10 @@
         "db:migrate": "drizzle-kit migrate",
         "db:push": "drizzle-kit push",
         "db:seed": "tsx src/lib/db/seed.ts",
-        "db:studio": "drizzle-kit studio"
+        "db:studio": "drizzle-kit studio",
+        "stripe:webhook": "stripe listen --forward-to localhost:3000/api/stripe",
+        "test:e2e": "playwright test",
+        "test:e2e:ui": "playwright test --ui"
     },
     "dependencies": {
         "@neondatabase/serverless": "^0.10.0",
@@ -23,6 +26,7 @@
         "query-string": "^9.1.0",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
+        "sonner": "^2.0.7",
         "stripe": "^20.2.0",
         "uuid": "^13.0.0",
         "uuidv4": "^6.2.13",
@@ -39,6 +43,7 @@
         "eslint-config-next": "^15.0.0",
         "postcss": "^8",
         "tailwindcss": "^3.4.1",
+        "@playwright/test": "^1.49.0",
         "tsx": "^4.7.0",
         "typescript": "^5"
     }

@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Card, CollapsibleSection, ProductInteractive } from "@/components";
+import { Card, CollapsibleSection, ProductInteractive, ReviewsSection } from "@/components";
 import {
     getProduct,
-    getProductReviews,
     getRecommendedProducts,
 } from "@/lib/actions/product";
-import { Star } from "lucide-react";
+import { getProductReviewStats } from "@/lib/actions/reviews";
 
 type ProductVariant = {
     id: string;
@@ -163,6 +162,7 @@ export default async function ProductDetailPage({
                     variants: product.variants,
                 }}
                 colorOptions={buildVariants(product)}
+                reviewStats={await getProductReviewStats(product.id)}
             />
 
             <div className="mt-10 flex flex-col gap-4">
@@ -195,51 +195,6 @@ export default async function ProductDetailPage({
     );
 }
 
-const ReviewsSection = async ({ productId }: { productId: string }) => {
-    const reviews = await getProductReviews(productId);
-
-    return (
-        <CollapsibleSection title={`Reviews (${reviews.length})`}>
-            <div className="flex flex-col gap-6">
-                {reviews.slice(0, 10).map((review) => (
-                    <div
-                        key={review.id}
-                        className="border-b border-[var(--color-light-300)] pb-4 last:border-none last:pb-0"
-                    >
-                        <div className="flex items-center justify-between">
-                            <p className="text-body-medium font-jost text-[var(--color-dark-900)]">
-                                {review.author}
-                            </p>
-                            <div className="flex items-center gap-1">
-                                {Array.from({ length: 5 }).map((_, idx) => (
-                                    <Star
-                                        key={idx}
-                                        className={`h-4 w-4 ${
-                                            idx < review.rating
-                                                ? "text-[var(--color-dark-900)]"
-                                                : "text-[var(--color-light-400)]"
-                                        }`}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                        {review.title && (
-                            <p className="mt-2 text-body-medium font-jost text-[var(--color-dark-900)]">
-                                {review.title}
-                            </p>
-                        )}
-                        <p className="mt-2 text-body font-jost text-[var(--color-dark-700)] line-clamp-3">
-                            {review.content}
-                        </p>
-                        <p className="mt-2 text-footnote font-jost text-[var(--color-dark-500)]">
-                            {new Date(review.createdAt).toLocaleDateString()}
-                        </p>
-                    </div>
-                ))}
-            </div>
-        </CollapsibleSection>
-    );
-};
 
 const RecommendationsSection = async ({ productId }: { productId: string }) => {
     const items = await getRecommendedProducts(productId);

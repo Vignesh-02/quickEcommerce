@@ -54,6 +54,34 @@ A Next.js ecommerce application built with TypeScript, Tailwind CSS, Better Auth
 
 6. **Open [http://localhost:3000](http://localhost:3000)** in your browser.
 
+## Deploy to Vercel
+
+See **[DEPLOY.md](./DEPLOY.md)** for step-by-step deployment. In short: push to GitHub, import the repo in Vercel, add env vars (`DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`), and deploy. Auth base URL can use Vercel’s URL automatically.
+
+## Frontend testing (E2E)
+
+[Playwright](https://playwright.dev/) is used to test the frontend in a real browser.
+
+1. **Install Playwright browsers** (once):
+
+    ```bash
+    npx playwright install chromium
+    ```
+
+2. **Run E2E tests** (starts the app automatically):
+
+    ```bash
+    npm run test:e2e
+    ```
+
+3. **Run tests with UI** (visual trace and debugging):
+
+    ```bash
+    npm run test:e2e:ui
+    ```
+
+Tests live in `e2e/` and cover: homepage, products listing, product detail, cart, and auth pages.
+
 ## Database Commands
 
 -   `npm run db:generate` - Generate migration files

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { Heart, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import AddToCartButton from "./AddToCartButton";
 import ProductGallery from "./ProductGallery";
 import SizePicker from "./SizePicker";
@@ -40,6 +41,10 @@ type ProductInteractiveProps = {
         variants: VariantInfo[];
     };
     colorOptions: ColorOption[];
+    reviewStats?: {
+        averageRating: number;
+        totalReviews: number;
+    };
 };
 
 const getDefaultColorId = (colors: ColorOption[], variants: VariantInfo[]) =>
@@ -48,7 +53,11 @@ const getDefaultColorId = (colors: ColorOption[], variants: VariantInfo[]) =>
 export default function ProductInteractive({
     product,
     colorOptions,
+    reviewStats,
 }: ProductInteractiveProps) {
+    // Debug: Log review stats
+    console.log("[ProductInteractive] reviewStats:", reviewStats);
+
     const [selectedColorId, setSelectedColorId] = useState(
         getDefaultColorId(colorOptions, product.variants)
     );
@@ -175,18 +184,54 @@ export default function ProductInteractive({
 
                 <div className="flex items-center gap-2 text-body font-jost text-[var(--color-dark-700)]">
                     <div className="flex items-center gap-1">
-                        {Array.from({ length: 5 }).map((_, idx) => (
-                            <Star
-                                key={idx}
-                                className={`h-4 w-4 ${
-                                    idx < 4
-                                        ? "text-[var(--color-dark-900)]"
-                                        : "text-[var(--color-light-400)]"
-                                }`}
-                            />
-                        ))}
+                        {Array.from({ length: 5 }).map((_, idx) => {
+                            if (!reviewStats || reviewStats.totalReviews === 0) {
+                                return (
+                                    <Star
+                                        key={idx}
+                                        className="h-4 w-4 text-[var(--color-light-400)]"
+                                    />
+                                );
+                            }
+                            const rating = Number(reviewStats.averageRating);
+                            const starValue = idx + 1; // Star value (1-5)
+                            const isFullyFilled = rating >= starValue;
+                            const isHalfFilled =
+                                rating >= idx + 0.5 && rating < starValue;
+
+                            return (
+                                <div key={idx} className="relative h-4 w-4">
+                                    {/* Empty star background */}
+                                    <Star className="absolute h-4 w-4 text-[var(--color-light-400)]" />
+                                    {/* Filled or half-filled star overlay */}
+                                    {isFullyFilled ? (
+                                        <Star className="absolute h-4 w-4 fill-[var(--color-dark-900)] text-[var(--color-dark-900)]" />
+                                    ) : isHalfFilled ? (
+                                        <Star
+                                            className="absolute h-4 w-4 fill-[var(--color-dark-900)] text-[var(--color-dark-900)]"
+                                            style={{
+                                                clipPath: "inset(0 50% 0 0)",
+                                            }}
+                                        />
+                                    ) : null}
+                                </div>
+                            );
+                        })}
                     </div>
-                    <span>(10)</span>
+                    {reviewStats && reviewStats.totalReviews > 0 ? (
+                        <span>
+                            {Number(reviewStats.averageRating).toFixed(1)} (
+                            {reviewStats.totalReviews}{" "}
+                            {reviewStats.totalReviews === 1
+                                ? "review"
+                                : "reviews"}
+                            )
+                        </span>
+                    ) : (
+                        <span className="text-[var(--color-light-400)]">
+                            No reviews yet
+                        </span>
+                    )}
                 </div>
 
                 <SizePicker
@@ -201,60 +246,77 @@ export default function ProductInteractive({
                         type="button"
                         onClick={() => {
                             if (!isSignedIn) {
-                                router.push("/sign-in?reason=favorites");
+                                toast.error(
+                                    "You need to be logged in to add to favorites"
+                                );
+                                setTimeout(() => {
+                                    router.push("/sign-in?reason=favorites");
+                                }, 1500);
                                 return;
                             }
                             if (!selectedVariant?.id) {
                                 return;
                             }
                             startTransition(async () => {
-                                if (isFavorited) {
-                                    const current = await getFavorites();
-                                    const favorite = current.find(
-                                        (item) =>
-                                            item.productVariantId ===
-                                            selectedVariant?.id
-                                    );
-                                    if (favorite) {
-                                        const updated = await removeFavorite(
-                                            favorite.id
+                                try {
+                                    if (isFavorited) {
+                                        const current = await getFavorites();
+                                        const favorite = current.find(
+                                            (item) =>
+                                                item.productVariantId ===
+                                                selectedVariant?.id
                                         );
-                                        setFavorites(
-                                            updated.map((item) => ({
-                                                id: item.id,
-                                                productId: item.productId,
-                                                productVariantId:
-                                                    item.productVariantId,
-                                                title: item.title,
-                                                subtitle: `${item.colorName} · ${item.sizeName}`,
-                                                price: item.price,
-                                                imageUrl: item.imageUrl,
-                                                note: item.note,
-                                                priority: item.priority,
-                                            }))
-                                        );
+                                        if (favorite) {
+                                            const updated = await removeFavorite(
+                                                favorite.id
+                                            );
+                                            setFavorites(
+                                                updated.map((item) => ({
+                                                    id: item.id,
+                                                    productId: item.productId,
+                                                    productVariantId:
+                                                        item.productVariantId,
+                                                    title: item.title,
+                                                    subtitle: `${item.colorName} · ${item.sizeName}`,
+                                                    price: item.price,
+                                                    imageUrl: item.imageUrl,
+                                                    note: item.note,
+                                                    priority: item.priority,
+                                                }))
+                                            );
+                                            toast.success(
+                                                "Removed from favorites"
+                                            );
+                                        }
+                                        return;
                                     }
-                                    return;
-                                }
 
-                                const updated = await addFavorite(
-                                    selectedVariant?.id ?? "",
-                                    null,
-                                    "medium"
-                                );
-                                setFavorites(
-                                    updated.map((item) => ({
-                                        id: item.id,
-                                        productId: item.productId,
-                                        productVariantId: item.productVariantId,
-                                        title: item.title,
-                                        subtitle: `${item.colorName} · ${item.sizeName}`,
-                                        price: item.price,
-                                        imageUrl: item.imageUrl,
-                                        note: item.note,
-                                        priority: item.priority,
-                                    }))
-                                );
+                                    const updated = await addFavorite(
+                                        selectedVariant?.id ?? "",
+                                        null,
+                                        "medium"
+                                    );
+                                    setFavorites(
+                                        updated.map((item) => ({
+                                            id: item.id,
+                                            productId: item.productId,
+                                            productVariantId: item.productVariantId,
+                                            title: item.title,
+                                            subtitle: `${item.colorName} · ${item.sizeName}`,
+                                            price: item.price,
+                                            imageUrl: item.imageUrl,
+                                            note: item.note,
+                                            priority: item.priority,
+                                        }))
+                                    );
+                                    toast.success("Added to favorites");
+                                } catch (error) {
+                                    toast.error(
+                                        error instanceof Error
+                                            ? error.message
+                                            : "Failed to update favorites"
+                                    );
+                                }
                             });
                         }}
                         className="flex w-full items-center justify-center gap-2 rounded-full border border-[var(--color-light-300)] px-6 py-3 text-body font-jost text-[var(--color-dark-900)]"

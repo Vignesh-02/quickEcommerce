@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { getCart } from "@/lib/actions/cart";
 import { useCartStore } from "@/store/cart.store";
 
@@ -35,6 +36,11 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
                 // calls the action function from the parent component with FormData
                 const result = await onSubmit(formData);
                 if (result && "success" in result && result.success) {
+                    toast.success(
+                        mode === "sign-up"
+                            ? "Account created successfully!"
+                            : "Signed in successfully!"
+                    );
                     setLoading(true);
                     if (result.cart) {
                         setCart(result.cart);
@@ -48,13 +54,19 @@ export default function AuthForm({ mode, onSubmit }: AuthFormProps) {
                     }
                     router.push("/");
                 } else {
-                    console.log(
-                        result && "error" in result ? result.error : ""
-                    );
+                    const errorMessage =
+                        result && "error" in result
+                            ? result.error
+                            : "An unexpected error occurred";
+                    toast.error(errorMessage || "Failed to authenticate");
                 }
             }
         } catch (error) {
-            console.log(error);
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : "An unexpected error occurred";
+            toast.error(errorMessage);
         }
     };
 

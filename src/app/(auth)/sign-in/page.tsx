@@ -10,6 +10,7 @@ type SignInPageProps = {
 export default async function SignInPage({ searchParams }: SignInPageProps) {
     const resolvedParams = await searchParams;
     const showFavoritesNotice = resolvedParams.reason === "favorites";
+    const showReviewNotice = resolvedParams.reason === "review";
 
     return (
         <div className="w-full">
@@ -18,6 +19,11 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
                 {showFavoritesNotice && (
                     <div className="mb-4 rounded-xl border border-dashed border-[var(--color-light-300)] bg-[var(--color-light-200)] p-4 text-body font-jost text-[var(--color-dark-700)]">
                         You need to login to add to favourites.
+                    </div>
+                )}
+                {showReviewNotice && (
+                    <div className="mb-4 rounded-xl border border-dashed border-[var(--color-light-300)] bg-[var(--color-light-200)] p-4 text-body font-jost text-[var(--color-dark-700)]">
+                        You need to login to leave a review.
                     </div>
                 )}
                 <div className="flex items-center justify-between mb-6">
