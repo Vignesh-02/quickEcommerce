@@ -42,9 +42,9 @@ const labelMaps = {
 export default async function ProductsPage({
     searchParams,
 }: {
-    searchParams?: Record<string, string | string[] | undefined>;
+    searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
-    const resolvedSearchParams = await Promise.resolve(searchParams ?? {});
+    const resolvedSearchParams = await (searchParams ?? Promise.resolve({}));
     const filters = parseFilterParams(resolvedSearchParams);
     const { products, totalCount } = await getAllProducts(filters);
 
