@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Jost } from "next/font/google";
+import { Toaster } from "sonner";
 
 const jost = Jost({
     variable: "--font-jost",
@@ -20,7 +21,10 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`${jost.className} antialiased`}>{children}</body>
+            <body className={`${jost.className} antialiased`}>
+                {children}
+                <Toaster position="top-center" richColors />
+            </body>
         </html>
     );
 }

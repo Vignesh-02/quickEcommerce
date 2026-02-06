@@ -31,6 +31,35 @@ const COOKIE_CONFIG = {
 };
 
 /**
+ * Normalize error messages to be more user-friendly
+ */
+function normalizeErrorMessage(error: string, mode: "sign-in" | "sign-up"): string {
+    const lowerError = error.toLowerCase();
+
+    // Common Better Auth error patterns
+    if (lowerError.includes("email") && lowerError.includes("already") || lowerError.includes("exists")) {
+        return "An account with this email already exists. Please sign in instead.";
+    }
+    if (lowerError.includes("invalid") && (lowerError.includes("email") || lowerError.includes("password"))) {
+        return mode === "sign-in"
+            ? "Invalid email or password. Please check your credentials and try again."
+            : "Invalid email address. Please enter a valid email.";
+    }
+    if (lowerError.includes("password") && lowerError.includes("weak") || lowerError.includes("short")) {
+        return "Password must be at least 8 characters long.";
+    }
+    if (lowerError.includes("user not found") || lowerError.includes("no user")) {
+        return "No account found with this email. Please sign up first.";
+    }
+    if (lowerError.includes("network") || lowerError.includes("connection")) {
+        return "Network error. Please check your connection and try again.";
+    }
+
+    // Return original error if no pattern matches
+    return error;
+}
+
+/**
  * Create a new user account
  */
 export async function signUp(FormData: FormData) {
@@ -59,12 +88,13 @@ export async function signUp(FormData: FormData) {
             | { error: { message: string } };
 
         if (!response.ok || "error" in payload) {
+            const rawError =
+                "error" in payload
+                    ? payload.error.message
+                    : "Failed to create account";
             return {
                 success: false,
-                error:
-                    "error" in payload
-                        ? payload.error.message
-                        : "Failed to create account",
+                error: normalizeErrorMessage(rawError, "sign-up"),
             };
         }
 
@@ -125,12 +155,13 @@ export async function signIn(FormData: FormData) {
             | { error: { message: string } };
 
         if (!response.ok || "error" in payload) {
+            const rawError =
+                "error" in payload
+                    ? payload.error.message
+                    : "Invalid credentials";
             return {
                 success: false,
-                error:
-                    "error" in payload
-                        ? payload.error.message
-                        : "Invalid credentials",
+                error: normalizeErrorMessage(rawError, "sign-in"),
             };
         }
 

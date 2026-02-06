@@ -13,4 +13,7 @@ export { default as CartSummary } from "./CartSummary";
 export { default as AddToCartButton } from "./AddToCartButton";
 export { default as FavoritesList } from "./FavoritesList";
 export { default as OrderSuccess } from "./OrderSuccess";
+export { default as ReviewForm } from "./ReviewForm";
+export { default as ReviewsList } from "./ReviewsList";
+export { default as ReviewsSection } from "./ReviewsSection";
 export type { CardProps } from "./Card";
