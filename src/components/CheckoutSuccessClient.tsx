@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import OrderSuccess from "./OrderSuccess";
 import type { OrderDetail } from "@/lib/actions/orders";
+import { useCartStore } from "@/store/cart.store";
 
 type CheckoutSuccessClientProps = {
     sessionId: string;
@@ -16,12 +17,13 @@ export default function CheckoutSuccessClient({
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
+    const clearCart = useCartStore((state) => state.clearLocal);
     const pollCountRef = useRef(0);
     const isPollingRef = useRef(true);
 
     useEffect(() => {
-        const maxPolls = 30; // Poll for up to 30 seconds (30 * 1s intervals)
-        const pollInterval = 1000; // Poll every 1 second
+        const maxPolls = 10; // Fallback: poll up to 10s if first request misses
+        const pollInterval = 1000;
 
         const pollForOrder = async () => {
             if (!isPollingRef.current) {
@@ -51,6 +53,7 @@ export default function CheckoutSuccessClient({
                 // Check if order exists
                 if (data.order) {
                     setOrder(data.order);
+                    clearCart(); // Cart is already cleared in DB by createOrder; clear client state
                     setIsLoading(false);
                     isPollingRef.current = false;
                     return;

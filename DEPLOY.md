@@ -49,4 +49,11 @@ After the first deploy, Vercel will show a URL like `https://quickecommerce-xxx.
   ```
 - **Stripe**: In production, create a webhook endpoint for `https://YOUR_APP.vercel.app/api/stripe` and set `STRIPE_WEBHOOK_SECRET` in Vercel.
 
+## 5. Optional: Sign in with Google / Facebook
+
+To enable “Continue with Google” and “Continue with Facebook” on sign-in and sign-up:
+
+- **Google**: In [Google Cloud Console](https://console.cloud.google.com/apis/credentials) create OAuth 2.0 credentials (Web application). Set authorized redirect URI to `https://YOUR_APP.vercel.app/api/auth/callback/google`. Add `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in Vercel.
+- **Facebook**: In [Facebook for Developers](https://developers.facebook.com/apps) create an app, add the **Facebook Login** product, and in Settings set **Valid OAuth Redirect URIs** to `https://YOUR_APP.vercel.app/api/auth/callback/facebook`. Use the App ID as `FACEBOOK_CLIENT_ID` and App Secret as `FACEBOOK_CLIENT_SECRET` in Vercel.
+
 Done. Your app should be live at the Vercel URL.
