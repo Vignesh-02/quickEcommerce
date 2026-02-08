@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getOrder } from "@/lib/actions/orders";
+import { createOrder, getOrder } from "@/lib/actions/orders";
 
 export async function GET(request: Request) {
     try {
@@ -13,17 +13,21 @@ export async function GET(request: Request) {
             );
         }
 
-        console.log("[API] Fetching order for session:", sessionId);
-        const order = await getOrder(sessionId);
+        let order = await getOrder(sessionId);
 
         if (!order) {
-            console.log("[API] Order not found yet for session:", sessionId);
-            // Return 200 with order: null to indicate order not found yet (not an error)
-            // This allows the client to continue polling
+            // Webhook may not have run yet. Ensure order exists: create it from the
+            // Stripe session if payment is complete (idempotent with webhook).
+            const orderId = await createOrder(sessionId);
+            if (orderId) {
+                order = await getOrder(sessionId);
+            }
+        }
+
+        if (!order) {
             return NextResponse.json({ order: null }, { status: 200 });
         }
 
-        console.log("[API] Order found:", order.id);
         return NextResponse.json({ order });
     } catch (error) {
         console.error("[API] Error fetching order:", error);
