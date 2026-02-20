@@ -1,4 +1,4 @@
-# Quick Ecommerce
+# Quick Ecommerce Application
 
 A Next.js ecommerce application built with TypeScript, Tailwind CSS, Better Auth, Neon PostgreSQL, Drizzle ORM, and Zustand.
 
